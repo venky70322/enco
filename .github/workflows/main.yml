@@ -1,4 +1,4 @@
-name: ENCODER CI
+name: RTL CI AUTO MERGE
 
 permissions:
   contents: write
@@ -6,7 +6,6 @@ permissions:
 on:
   push:
     branches:
-      - main
       - feature
       - feature/*
 
@@ -34,28 +33,17 @@ jobs:
           git config --global user.name github-actions
           git config --global user.email actions@github.com
 
-      - name: Auto Merge Main to Main Push
-        if: github.ref_name == 'main'
-        run: |
-          git checkout main
-          git commit --allow-empty -m "CI passed on main"
-          git push origin main
-
       - name: Fetch Main
-        if: github.ref_name != 'main'
         run: git fetch origin main
 
       - name: Checkout Main
-        if: github.ref_name != 'main'
         run: git checkout main
 
       - name: Merge Feature to Main
-        if: github.ref_name != 'main'
         run: |
           git merge --no-ff "${GITHUB_REF_NAME}" \
           -m "Merge branch '${GITHUB_REF_NAME}'" \
           -X theirs --allow-unrelated-histories
 
       - name: Push Main
-        if: github.ref_name != 'main'
         run: git push origin main
