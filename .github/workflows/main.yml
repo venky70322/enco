@@ -1,0 +1,54 @@
+name: ENCODER CI
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+      - feature
+      - feature/*
+
+jobs:
+  simulate-and-merge:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Show Path
+        run: pwd
+
+      - name: List Files
+        run: ls
+
+      - name: Run Simulation
+        run: unset VERILATOR_ROOT && make all
+
+      - name: Configure Git User
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email actions@github.com
+
+      - name: Fetch Main
+        if: github.ref_name != 'main'
+        run: git fetch origin main
+
+      - name: Checkout Main
+        if: github.ref_name != 'main'
+        run: git checkout main
+
+      - name: Merge Feature to Main
+        if: github.ref_name != 'main'
+        run: |
+          git merge --no-ff "${GITHUB_REF_NAME}" \
+          -m "Merge branch '${GITHUB_REF_NAME}'" \
+          -X theirs --allow-unrelated-histories
+
+      - name: Push Main
+        if: github.ref_name != 'main'
+        run: git push origin main
